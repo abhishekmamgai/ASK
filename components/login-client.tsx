@@ -2,27 +2,21 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Mail, Lock, User, Building2, Eye, EyeOff } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export function LoginClient() {
   const router = useRouter()
+
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showSignupPassword, setShowSignupPassword] = useState(false)
 
-  const [loginData, setLoginData] = useState({ email: '', password: '' })
-  const [signupData, setSignupData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    companyName: '',
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [company, setCompany] = useState('')
 
-  // Real admin credentials
+  // Admin credentials
   const ADMIN_EMAIL = 'infoasktechbusiness@gmail.com'
   const ADMIN_PASSWORD = 'abhishekshivakartik@ask'
 
@@ -32,45 +26,38 @@ export function LoginClient() {
     setLoading(true)
 
     try {
-      // Check if admin login
-      if (loginData.email === ADMIN_EMAIL && loginData.password === ADMIN_PASSWORD) {
-        console.log('[v0] Admin login successful')
-        sessionStorage.setItem('user', JSON.stringify({
-          id: 'admin-001',
-          email: ADMIN_EMAIL,
-          name: 'Admin',
-          role: 'admin'
-        }))
-        sessionStorage.setItem('sessionId', 'admin-session-' + Date.now())
+      // Admin login
+      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(
+          'user',
+          JSON.stringify({
+            email: ADMIN_EMAIL,
+            role: 'admin',
+            name: 'Admin',
+          })
+        )
         router.push('/admin/dashboard')
         return
       }
 
-      // Regular client login
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Invalid email or password')
-        console.log('[v0] Login failed:', data.error)
+      if (error) {
+        setError(error.message)
+        setLoading(false)
         return
       }
 
-      console.log('[v0] Client login successful')
       sessionStorage.setItem('user', JSON.stringify(data.user))
-      sessionStorage.setItem('sessionId', data.sessionId)
       router.push('/client/dashboard')
-    } catch (err) {
-      setError('Network error. Please try again.')
-      console.error('[v0] Login error:', err)
-    } finally {
-      setLoading(false)
+    } catch {
+      setError('Login failed')
     }
+
+    setLoading(false)
   }
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -78,225 +65,128 @@ export function LoginClient() {
     setError('')
     setLoading(true)
 
-    // Validate password
-    if (signupData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      setLoading(false)
-      return
-    }
-
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signupData),
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Signup failed')
-        console.log('[v0] Signup error:', data.error)
+      if (error) {
+        setError(error.message)
+        setLoading(false)
         return
       }
 
-      console.log('[v0] Signup successful')
-      setSignupData({ email: '', password: '', name: '', companyName: '' })
-      alert('Account created successfully! Please login.')
+      alert('Account created! Please check your email.')
       setIsLogin(true)
-    } catch (err) {
-      setError('Network error. Please try again.')
-      console.error('[v0] Signup error:', err)
-    } finally {
-      setLoading(false)
+    } catch {
+      setError('Signup failed')
     }
+
+    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4" suppressHydrationWarning>
-      <div className="w-full max-w-md" suppressHydrationWarning>
-        <div className="bg-card border border-border rounded-2xl shadow-xl p-8" suppressHydrationWarning>
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">ASK Projects</h1>
-            <p className="text-muted-foreground">Manage your projects efficiently</p>
-          </div>
+    <div className="min-h-screen flex">
+      {/* LEFT SIDE (Brand / Design) */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-green-500 text-white items-center justify-center p-12">
+        <div className="max-w-md">
+          <h1 className="text-4xl font-bold mb-6">ASK TECH</h1>
+          <p className="text-lg mb-4">
+            Build the future with modern technology.
+          </p>
+          <ul className="space-y-2 text-sm opacity-90">
+            <li>• Track your project progress</li>
+            <li>• Real-time updates</li>
+            <li>• Secure client dashboard</li>
+            <li>• Professional project management</li>
+          </ul>
+        </div>
+      </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 bg-muted p-1 rounded-lg">
-            <button
-              onClick={() => {
-                setIsLogin(true)
-                setError('')
-              }}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                isLogin
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => {
-                setIsLogin(false)
-                setError('')
-              }}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                !isLogin
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Signup
-            </button>
-          </div>
+      {/* RIGHT SIDE (Form) */}
+      <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-50 p-6">
+        <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+          <h2 className="text-2xl font-bold text-center mb-2">
+            {isLogin ? 'Login' : 'Create Account'}
+          </h2>
+          <p className="text-center text-gray-500 mb-6">
+            ASK Project Portal
+          </p>
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+            <p className="text-red-500 text-sm mb-4 text-center">
               {error}
-            </div>
+            </p>
           )}
 
-          {/* Login Form */}
-          {isLogin ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type="email"
-                    placeholder="admin@ask.com"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+          <form
+            onSubmit={isLogin ? handleLogin : handleSignup}
+            className="space-y-4"
+          >
+            {!isLogin && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  className="w-full border p-3 rounded-lg"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                    className={`pl-10 ${loginData.password ? 'pr-10' : ''}`}
-                    required
-                  />
-                  {loginData.password && (
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  )}
-                </div>
-              </div>
+                <input
+                  type="text"
+                  placeholder="Company (optional)"
+                  className="w-full border p-3 rounded-lg"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                />
+              </>
+            )}
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-primary to-secondary"
-              >
-                {loading ? 'Logging in...' : 'Login'}
-              </Button>
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full border p-3 rounded-lg"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-              <p className="text-center text-sm text-muted-foreground">
-                New user? <button onClick={() => setIsLogin(false)} className="text-primary hover:underline font-semibold">Create an account</button>
-              </p>
-            </form>
-          ) : (
-            /* Signup Form */
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={signupData.name}
-                    onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border p-3 rounded-lg"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-green-500 text-white p-3 rounded-lg font-semibold"
+            >
+              {loading
+                ? 'Please wait...'
+                : isLogin
+                ? 'Login'
+                : 'Create Account'}
+            </button>
+          </form>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type={showSignupPassword ? 'text' : 'password'}
-                    placeholder="Create a password (min 6 chars)"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                    className={`pl-10 ${signupData.password ? 'pr-10' : ''}`}
-                    required
-                  />
-                  {signupData.password && (
-                    <button
-                      type="button"
-                      onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showSignupPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Company Name (Optional)</label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-3 text-muted-foreground" size={20} />
-                  <Input
-                    type="text"
-                    placeholder="Your company"
-                    value={signupData.companyName}
-                    onChange={(e) => setSignupData({ ...signupData, companyName: e.target.value })}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-primary to-secondary"
-              >
-                {loading ? 'Creating account...' : 'Create Account'}
-              </Button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                Already have an account? <button onClick={() => setIsLogin(true)} className="text-primary hover:underline font-semibold">Login here</button>
-              </p>
-            </form>
-          )}
+          <p className="text-center mt-6 text-sm">
+            {isLogin ? 'New user?' : 'Already have an account?'}{' '}
+            <button
+              className="text-blue-600 font-semibold"
+              onClick={() => {
+                setIsLogin(!isLogin)
+                setError('')
+              }}
+            >
+              {isLogin ? 'Signup' : 'Login'}
+            </button>
+          </p>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Mail, Phone, MapPin } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export function Contact() {
   const [isLoading, setIsLoading] = useState(false)
@@ -26,32 +27,24 @@ export function Contact() {
     setResult('')
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append(
-        'access_key',
-        '28013235-88f1-42c5-ba3d-14708ff64cda'
-      )
-      formDataToSend.append('name', formData.name)
-      formDataToSend.append('email', formData.email)
-      formDataToSend.append('message', formData.message)
-      formDataToSend.append('subject', 'New Contact Form Submission')
+      const { error } = await supabase.from('contacts').insert([
+        {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        },
+      ])
 
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formDataToSend,
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
+      if (error) {
+        console.error(error)
+        setResult('Error sending message')
+      } else {
         setResult('Message sent successfully!')
         setFormData({ name: '', email: '', message: '' })
-      } else {
-        setResult('Something went wrong. Please try again.')
       }
-    } catch (error) {
-      console.error(error)
-      setResult('Error sending message.')
+    } catch (err) {
+      console.error(err)
+      setResult('Something went wrong')
     } finally {
       setIsLoading(false)
     }
@@ -60,7 +53,6 @@ export function Contact() {
   return (
     <section id="contact" className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
             Get In Touch
@@ -73,7 +65,6 @@ export function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Info */}
           <div className="lg:col-span-1 space-y-8">
-            {/* Email */}
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <Mail className="w-6 h-6 text-primary" />
@@ -89,7 +80,6 @@ export function Contact() {
               </div>
             </div>
 
-            {/* Phone */}
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
                 <Phone className="w-6 h-6 text-secondary" />
@@ -102,7 +92,6 @@ export function Contact() {
               </div>
             </div>
 
-            {/* Location */}
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
                 <MapPin className="w-6 h-6 text-accent" />
@@ -152,18 +141,12 @@ export function Contact() {
                 className="w-full px-4 py-2 border rounded-lg"
               />
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? 'Sending...' : 'Send Message'}
               </Button>
 
               {result && (
-                <p className="text-center text-sm mt-2">
-                  {result}
-                </p>
+                <p className="text-center text-sm mt-2">{result}</p>
               )}
             </form>
           </div>
