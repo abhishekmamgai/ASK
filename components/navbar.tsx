@@ -23,11 +23,13 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <img
-              src="/asktech-logo.png"
-              alt="ASK TECH Logo"
-              className="h-10 w-auto object-contain"
-            />
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent via-primary to-secondary flex items-center justify-center shadow-md">
+              <span className="text-sm font-bold text-accent-foreground">A</span>
+            </div>
+
+            <span className="font-bold text-lg text-foreground tracking-wide">
+              ASK TECH
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

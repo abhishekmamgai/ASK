@@ -5,7 +5,6 @@ interface Project {
   category: string
   description: string
   image: string
-  link?: string
 }
 
 export function Projects() {
@@ -27,21 +26,12 @@ export function Projects() {
       category: 'Mobile Development',
       description: 'iOS/Android app with workout tracking and nutrition planning.',
       image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80',
-      link: 'https://health-pro-abhishekmamgais-projects.vercel.app/',
     },
     {
       title: 'AI Content Generator',
       category: 'AI Solutions',
       description: 'AI system for generating marketing and social media content.',
       image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80',
-      link: 'https://content-ai-amber-delta.vercel.app/',
-    },
-    {
-      title: 'Cafe Demo',
-      category: 'Web Development',
-      description: 'A modern cafe website demo with elegant design and seamless user experience.',
-      image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
-      link: 'https://cafe-noir-demo-du5b9350o-abhishekmamgais-projects.vercel.app/',
     },
     {
       title: 'Cloud Infrastructure',
@@ -87,20 +77,9 @@ export function Projects() {
 
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  {project.link ? (
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-6 py-2 rounded-full bg-white text-black font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      View Project
-                    </a>
-                  ) : (
-                    <button className="px-6 py-2 rounded-full bg-white text-black font-semibold">
-                      View Project
-                    </button>
-                  )}
+                  <button className="px-6 py-2 rounded-full bg-white text-black font-semibold">
+                    View Project
+                  </button>
                 </div>
               </div>
 
@@ -113,13 +92,7 @@ export function Projects() {
                 </div>
 
                 <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
-                  {project.link ? (
-                    <a href={project.link} target="_blank" rel="noopener noreferrer">
-                      {project.title}
-                    </a>
-                  ) : (
-                    project.title
-                  )}
+                  {project.title}
                 </h3>
 
                 <p className="text-muted-foreground text-sm">

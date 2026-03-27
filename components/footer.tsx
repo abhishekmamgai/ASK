@@ -10,11 +10,16 @@ export function Footer() {
           {/* Company Info */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img
-                src="/asktech-logo.png"
-                alt="ASK TECH Logo"
-                className="h-10 w-auto object-contain"
-              />
+              
+              {/* Logo Box */}
+              <div className="w-8 h-8 rounded bg-gradient-to-br from-accent via-primary to-secondary flex items-center justify-center">
+                <span className="text-sm font-bold text-accent-foreground">
+                  A
+                </span>
+              </div>
+
+              {/* Company Name */}
+              <span className="font-bold text-lg">ASK TECH</span>
             </div>
 
             <p className="text-sm text-muted-foreground mb-4">
